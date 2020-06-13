@@ -1,5 +1,5 @@
 # Sphere
-The sphere problem with arbitrary dimensions and objectives.
+This problem calculates a sphere function with an arbitrary number of dimensions and objectives.
 
 ## Usage
 ```
@@ -7,7 +7,7 @@ $ python sphere.py "[1, 2]"
 ```
 
 ## Environmental Variables
-The location of optima can be specified via `SPHERE_OPTIMA`, which may be a scalar, a vector or a matrix.
+The location of optima can be specified via `SPHERE_OPTIMA` environmental variable, which may be a scalar, a vector or a matrix.
 
 If you need an n-variable, single-objective problem with the optimum at the origin (default), then set:
 ```

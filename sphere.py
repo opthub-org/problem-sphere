@@ -119,7 +119,7 @@ def main(optima, quiet, verbose, config):
 
 if __name__ == '__main__':
     try:
-        main(auto_envvar_prefix="SPHERE")  # pylint: disable=no-value-for-parameter
+        main(auto_envvar_prefix="SPHERE")  # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
     except Exception as e:
         _logger.error(e)
         print(json.dumps({'objective': None, 'error': str(e)}))

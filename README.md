@@ -3,7 +3,7 @@ This problem calculates a sphere function with an arbitrary number of dimensions
 
 ## Usage
 ```
-$ python sphere.py "[1, 2]"
+$ echo [1, 2] | ./sphere.py
 ```
 
 ## Environmental Variables

@@ -1,0 +1,12 @@
+## 1-variable, 1-objective
+optima:
+- [0]
+
+## 2-variable, 1-objective
+# optima:
+# - [0, 0]
+
+## 3-variable, 2-objective
+# optima:
+# - [1, 2, 3]
+# - [4, 5, 6]

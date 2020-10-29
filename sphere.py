@@ -10,6 +10,7 @@ from os import path
 import click
 from jsonschema import validate, ValidationError
 import numpy as np
+import yaml
 
 
 _logger = logging.getLogger(__name__)

@@ -65,12 +65,25 @@ def load_config(ctx, value):
     return ctx.default_map
 
 
+def json_list(ctx, param, value):
+    """Load a list from a JSON string.
+
+    :param value: JSON string
+    :return list: Loaded list
+    """
+    if type(value) is str:
+        value = json.loads(value)
+    if type(value) is not list:
+        ctx.fail("Invalid option: %s=%s, which must be list or str." % (param.name, value))
+    return value
+
+
 def sphere(x, z):
     return np.sum((x - z)**2, axis=1).tolist()
 
 
 @click.command(help='Sphere function minimization problem.')
-@click.option('-o', '--optima', default='[[0]]', help='Sphere function minimization problem.')
+@click.option('-o', '--optima', callback=json_list, default='[[0]]', help='Sphere function minimization problem.')
 @click.option('-q', '--quiet', count=True, help='Be quieter.')
 @click.option('-v', '--verbose', count=True, help='Be more verbose.')
 @click.option('-c', '--config',
@@ -83,10 +96,9 @@ def main(optima, quiet, verbose, config):
     logging.basicConfig(level=log_level)
     _logger.info('Log level is set to %d.', log_level)
 
-    optima_json = json.loads(optima)
-    validate(optima_json, json.loads(optima_jsonschema))
+    validate(optima, json.loads(optima_jsonschema))
 
-    optima = np.array(optima_json)
+    optima = np.array(optima)
     _logger.debug('optima = %s', optima)
     n_objective, n_variable = optima.shape
 

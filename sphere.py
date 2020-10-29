@@ -29,7 +29,12 @@ optima_jsonschema = """{
   }
 }"""
 
-variable_jsonschema = """{
+variable_jsonschema_1d = """{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Variable of Sphere function",
+  "type": "number"
+}"""
+variable_jsonschema_nd = """{
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Variable of Sphere function",
   "type": "array",
@@ -39,6 +44,10 @@ variable_jsonschema = """{
     "type": "number"
   }
 }"""
+
+
+def variable_jsonschema(dim):
+    return variable_jsonschema_1d if dim == 1 else variable_jsonschema_nd % (dim, dim)
 
 
 def load_config(ctx, value):
@@ -78,20 +87,20 @@ def main(optima, quiet, verbose, config):
 
     optima = np.array(optima_json)
     _logger.debug('optima = %s', optima)
-    n_variable = optima.shape[1]
+    n_objective, n_variable = optima.shape
 
     variable_str = input()
     _logger.debug('input = %s', variable_str)
 
     variable_json = json.loads(variable_str)
-    validate(variable_json, json.loads(variable_jsonschema % (n_variable, n_variable)))
+    validate(variable_json, json.loads(variable_jsonschema(n_variable)))
     variable = np.array(variable_json)
     _logger.debug('variable = %s', variable)
 
     objective = sphere(variable, optima)
     _logger.debug('objective = %s', objective)
 
-    print(json.dumps({'objective': objective}))
+    print(json.dumps({'objective': objective[0] if n_objective == 1 else objective}))
     _logger.info('Successfully exit')
 
 

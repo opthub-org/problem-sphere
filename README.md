@@ -1,17 +1,18 @@
 # Sphere
-This problem calculates a sphere function with an arbitrary number of dimensions and objectives.
+This problem calculates a sphere function with an arbitrary number of variables and objectives.
 
 ## Usage
 ```
-$ echo [1, 2] | ./sphere.py
+$ echo [2,1] | ./sphere.py
+{"objective": 5}
 ```
 
 ## Environmental Variables
-The location of optima can be specified via `SPHERE_OPTIMA` environmental variable, which may be a scalar, a vector or a matrix.
+The location of optima can be specified via `SPHERE_OPTIMA` environmental variable, which must be a matrix.
 
-If you need an n-variable, single-objective problem with the optimum at the origin (default), then set:
+If you need a 2-variable, single-objective problem with the optimum at the origin (default), then set:
 ```
-SPHERE_OPTIMA=0
+SPHERE_OPTIMA=[[0,0]]
 ```
 
 If you need a 3-variable, 2-objective problem with `argmin f1=[1, 2, 3]` and `argmin f2=[4, 5, 6]`, then set:

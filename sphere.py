@@ -6,6 +6,7 @@ The sphere problem.
 import json
 import logging
 from os import path
+from traceback import format_exc
 
 import click
 from jsonschema import validate, ValidationError
@@ -96,30 +97,44 @@ def main(optima, quiet, verbose, config):
     logging.basicConfig(level=log_level)
     _logger.info('Log level is set to %d.', log_level)
 
+    _logger.info('Validate SPHERE_OPTIMA...')
     validate(optima, json.loads(optima_jsonschema))
+    _logger.info('...Validated')
 
     optima = np.array(optima)
     _logger.debug('optima = %s', optima)
     n_objective, n_variable = optima.shape
 
+    _logger.info('Recieve a solution...')
     variable_str = input()
     _logger.debug('input = %s', variable_str)
+    _logger.info('...Recieved')
 
+    _logger.info('Parse the solution...')
     variable_json = json.loads(variable_str)
+    _logger.info('...Parsed')
+
+    _logger.info('Validate the solution...')
     validate(variable_json, json.loads(variable_jsonschema(n_variable)))
+    _logger.info('...Validated')
+
     variable = np.array(variable_json)
     _logger.debug('variable = %s', variable)
 
+    _logger.info('Compute sphere function value...')
     objective = sphere(variable, optima)
     _logger.debug('objective = %s', objective)
+    _logger.info('...Computed')
 
     print(json.dumps({'objective': objective[0] if n_objective == 1 else objective}))
-    _logger.info('Successfully exit')
 
 
 if __name__ == '__main__':
     try:
-        main(auto_envvar_prefix="SPHERE")  # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
+        _logger.info('Start')
+        main(auto_envvar_prefix='SPHERE')  # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
+        _logger.info('Successfully finished')
     except Exception as e:
-        _logger.error(e)
+        _logger.error(format_exc())
         print(json.dumps({'objective': None, 'error': str(e)}))
+

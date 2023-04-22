@@ -9,7 +9,7 @@ from os import path
 from traceback import format_exc
 
 import click
-from jsonschema import validate, ValidationError
+from jsonschema import validate
 import numpy as np
 import yaml
 

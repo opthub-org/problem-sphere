@@ -1,7 +1,9 @@
 #!/bin/env python
-# coding: utf-8
 """
-The sphere problem.
+The multiobjective unconstrained sphere problem.
+
+minimize f_1(x_1, ..., x_n), ..., f_m(x_1, ..., x_n)
+where f_i(x) = ||x - z_i||^2
 """
 import json
 import logging
@@ -14,10 +16,9 @@ import numpy as np
 import yaml
 
 
-_logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
-
-optima_jsonschema = """{
+OPTIMA_JSONSCHEMA = """{
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Optima of Sphere function",
   "type": "array",
@@ -31,28 +32,33 @@ optima_jsonschema = """{
   }
 }"""
 
-variable_jsonschema_1d = """{
+VARIABLE_JSONSCHEMA_1D = """{
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Variable of Sphere function",
   "type": "number"
 }"""
-variable_jsonschema_nd = """{
+VARIABLE_JSONSCHEMA_ND = """{
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Variable of Sphere function",
   "type": "array",
-  "minItems": %d,
-  "maxItems": %d,
+  "minItems": {0},
+  "maxItems": {0},
   "items": {
     "type": "number"
   }
 }"""
 
 
-def variable_jsonschema(dim):
-    return variable_jsonschema_1d if dim == 1 else variable_jsonschema_nd % (dim, dim)
+def variable_jsonschema(dim: int):
+    """Return a JSON schema for n-design variable.
+
+    :param dim: dimension
+    :return str: JSON schema
+    """
+    return VARIABLE_JSONSCHEMA_1D if dim == 1 else VARIABLE_JSONSCHEMA_ND.format(dim)
 
 
-def load_config(ctx, value):
+def load_config(ctx: click.Context, value: str):
     """Load `ctx.default_map` from a file.
 
     :param ctx: Click context
@@ -61,8 +67,10 @@ def load_config(ctx, value):
     """
     if not path.exists(value):
         return {}
-    with open(value) as f:
-        ctx.default_map = yaml.safe_load(f)
+    with open(value, encoding="utf-8") as file:
+        ctx.default_map = yaml.safe_load(file)
+        if not isinstance(ctx.default_map, dict):
+            raise TypeError(f"The content of `{value}` must be dict, but {type(ctx.default_map)}.")
     return ctx.default_map
 
 
@@ -72,17 +80,23 @@ def json_list(ctx, param, value):
     :param value: JSON string
     :return list: Loaded list
     """
-    if type(value) is str:
+    if isinstance(value, str):
         value = json.loads(value)
-    if type(value) is not list:
+    if not isinstance(value, list):
         ctx.fail(
-            "Invalid option: %s=%s, which must be list or str." % (param.name, value)
+            f"Invalid option: {param.name}={value}, which must be list or str."
         )
     return value
 
 
-def sphere(x, z):
-    return np.sum((x - z) ** 2, axis=1).tolist()
+def sphere(variable, optima):
+    """Calculate the value of multiobjective sphere function.
+
+    :param variable: design variables
+    :param optima: optima
+    :return list: objective vector
+    """
+    return np.sum((variable - optima) ** 2, axis=1).tolist()
 
 
 @click.command(help="Sphere function minimization problem.")
@@ -105,51 +119,52 @@ def sphere(x, z):
     help="Configuration file.",
 )
 @click.version_option("1.0.0")
-def main(optima, quiet, verbose, config):
+def main(optima, quiet, verbose, config):  # pylint: disable=unused-argument
+    """Evaluate a given solution on a multiobjective unconstrained sphere problem."""
     verbosity = 10 * (quiet - verbose)
     log_level = logging.WARNING + verbosity
     logging.basicConfig(level=log_level)
-    _logger.info("Log level is set to %d.", log_level)
+    LOGGER.info("Log level is set to %d.", log_level)
 
-    _logger.info("Validate SPHERE_OPTIMA...")
-    validate(optima, json.loads(optima_jsonschema))
-    _logger.info("...Validated")
+    LOGGER.info("Validate SPHERE_OPTIMA...")
+    validate(optima, json.loads(OPTIMA_JSONSCHEMA))
+    LOGGER.info("...Validated")
 
     optima = np.array(optima)
-    _logger.debug("optima = %s", optima)
+    LOGGER.debug("optima = %s", optima)
     n_objective, n_variable = optima.shape
 
-    _logger.info("Recieve a solution...")
+    LOGGER.info("Recieve a solution...")
     variable_str = input()
-    _logger.debug("input = %s", variable_str)
-    _logger.info("...Recieved")
+    LOGGER.debug("input = %s", variable_str)
+    LOGGER.info("...Recieved")
 
-    _logger.info("Parse the solution...")
+    LOGGER.info("Parse the solution...")
     variable_json = json.loads(variable_str)
-    _logger.info("...Parsed")
+    LOGGER.info("...Parsed")
 
-    _logger.info("Validate the solution...")
+    LOGGER.info("Validate the solution...")
     validate(variable_json, json.loads(variable_jsonschema(n_variable)))
-    _logger.info("...Validated")
+    LOGGER.info("...Validated")
 
     variable = np.array(variable_json)
-    _logger.debug("variable = %s", variable)
+    LOGGER.debug("variable = %s", variable)
 
-    _logger.info("Compute sphere function value...")
+    LOGGER.info("Compute sphere function value...")
     objective = sphere(variable, optima)
-    _logger.debug("objective = %s", objective)
-    _logger.info("...Computed")
+    LOGGER.debug("objective = %s", objective)
+    LOGGER.info("...Computed")
 
     print(json.dumps({"objective": objective[0] if n_objective == 1 else objective}))
 
 
 if __name__ == "__main__":
     try:
-        _logger.info("Start")
-        main(
+        LOGGER.info("Start")
+        main(  # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
             auto_envvar_prefix="SPHERE"
-        )  # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
-        _logger.info("Successfully finished")
-    except Exception as e:
-        _logger.error(format_exc())
+        )
+        LOGGER.info("Successfully finished")
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        LOGGER.error(format_exc())
         print(json.dumps({"objective": None, "error": str(e)}))

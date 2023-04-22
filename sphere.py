@@ -75,66 +75,81 @@ def json_list(ctx, param, value):
     if type(value) is str:
         value = json.loads(value)
     if type(value) is not list:
-        ctx.fail("Invalid option: %s=%s, which must be list or str." % (param.name, value))
+        ctx.fail(
+            "Invalid option: %s=%s, which must be list or str." % (param.name, value)
+        )
     return value
 
 
 def sphere(x, z):
-    return np.sum((x - z)**2, axis=1).tolist()
+    return np.sum((x - z) ** 2, axis=1).tolist()
 
 
-@click.command(help='Sphere function minimization problem.')
-@click.option('-o', '--optima', callback=json_list, default='[[0]]', help='Sphere function minimization problem.')
-@click.option('-q', '--quiet', count=True, help='Be quieter.')
-@click.option('-v', '--verbose', count=True, help='Be more verbose.')
-@click.option('-c', '--config',
-              type=click.Path(dir_okay=False), default='config.yml',
-              is_eager=True, callback=load_config, help='Configuration file.')
-@click.version_option('1.0.0')
+@click.command(help="Sphere function minimization problem.")
+@click.option(
+    "-o",
+    "--optima",
+    callback=json_list,
+    default="[[0]]",
+    help="Sphere function minimization problem.",
+)
+@click.option("-q", "--quiet", count=True, help="Be quieter.")
+@click.option("-v", "--verbose", count=True, help="Be more verbose.")
+@click.option(
+    "-c",
+    "--config",
+    type=click.Path(dir_okay=False),
+    default="config.yml",
+    is_eager=True,
+    callback=load_config,
+    help="Configuration file.",
+)
+@click.version_option("1.0.0")
 def main(optima, quiet, verbose, config):
     verbosity = 10 * (quiet - verbose)
     log_level = logging.WARNING + verbosity
     logging.basicConfig(level=log_level)
-    _logger.info('Log level is set to %d.', log_level)
+    _logger.info("Log level is set to %d.", log_level)
 
-    _logger.info('Validate SPHERE_OPTIMA...')
+    _logger.info("Validate SPHERE_OPTIMA...")
     validate(optima, json.loads(optima_jsonschema))
-    _logger.info('...Validated')
+    _logger.info("...Validated")
 
     optima = np.array(optima)
-    _logger.debug('optima = %s', optima)
+    _logger.debug("optima = %s", optima)
     n_objective, n_variable = optima.shape
 
-    _logger.info('Recieve a solution...')
+    _logger.info("Recieve a solution...")
     variable_str = input()
-    _logger.debug('input = %s', variable_str)
-    _logger.info('...Recieved')
+    _logger.debug("input = %s", variable_str)
+    _logger.info("...Recieved")
 
-    _logger.info('Parse the solution...')
+    _logger.info("Parse the solution...")
     variable_json = json.loads(variable_str)
-    _logger.info('...Parsed')
+    _logger.info("...Parsed")
 
-    _logger.info('Validate the solution...')
+    _logger.info("Validate the solution...")
     validate(variable_json, json.loads(variable_jsonschema(n_variable)))
-    _logger.info('...Validated')
+    _logger.info("...Validated")
 
     variable = np.array(variable_json)
-    _logger.debug('variable = %s', variable)
+    _logger.debug("variable = %s", variable)
 
-    _logger.info('Compute sphere function value...')
+    _logger.info("Compute sphere function value...")
     objective = sphere(variable, optima)
-    _logger.debug('objective = %s', objective)
-    _logger.info('...Computed')
+    _logger.debug("objective = %s", objective)
+    _logger.info("...Computed")
 
-    print(json.dumps({'objective': objective[0] if n_objective == 1 else objective}))
+    print(json.dumps({"objective": objective[0] if n_objective == 1 else objective}))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
-        _logger.info('Start')
-        main(auto_envvar_prefix='SPHERE')  # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
-        _logger.info('Successfully finished')
+        _logger.info("Start")
+        main(
+            auto_envvar_prefix="SPHERE"
+        )  # pylint: disable=no-value-for-parameter,unexpected-keyword-arg
+        _logger.info("Successfully finished")
     except Exception as e:
         _logger.error(format_exc())
-        print(json.dumps({'objective': None, 'error': str(e)}))
-
+        print(json.dumps({"objective": None, "error": str(e)}))
